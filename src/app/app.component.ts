@@ -39,8 +39,8 @@ export class AppComponent implements OnInit, OnDestroy {
   /*1.Using userApi.getCurrentUser() fetch user and assign it to the field user.*/
   private getUser() {}
   /*2.Using userApi.getCurrentUser() and permissionsApi.getPermissions() create new observable "hasPermission".
-      To check whether a user has permission to display content you need both values from userApi and permissionsApi.
-      Next you need to call userPermission.hasPermission(userId, Permission.DISPLAY_CONTENT): boolean.
+      To check whether a user has permission to display content you need both values from userApi=User and permissionsApi=UserPermissions.
+      Next you need to call userPermissions.hasPermission(userId, Permission.DISPLAY_CONTENT): boolean.
   */
   private getUserPermission() {}
   /*3.
