@@ -1,6 +1,16 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, Observable, Subject, takeUntil } from 'rxjs';
+import {
+  combineLatest,
+  firstValueFrom,
+  Observable,
+  Subject,
+  takeUntil,
+} from 'rxjs';
+import { map, take } from 'rxjs/operators';
 import { Content } from '../model/content.model';
+import { Permission } from '../model/permission.enum';
+import { TableContentItem } from '../model/table-content-item.model';
+import { UserPermissions } from '../model/user-permissions.model';
 import { User } from '../model/user.model';
 import { ContentApi } from '../service/content/content.api';
 import { DecodeService } from '../service/decode/decode.service';
@@ -14,7 +24,7 @@ import { UserApi } from '../service/user/user.api';
 })
 export class AppComponent implements OnInit, OnDestroy {
   user: User = {} as User;
-  content: Content[] = [] as Content[];
+  contentTableItems: TableContentItem[];
   hasPermission$: Observable<boolean>;
   private onDestroy$: Subject<boolean> = new Subject<boolean>();
 
@@ -33,20 +43,60 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.getUser();
     this.getUserPermission();
-    this.contentApi.getContent().subscribe((value) => (this.content = value));
+    this.getTableContent();
   }
 
-  /*1. Using userApi.getCurrentUser() fetch user and assign it to the field user.*/
+  /*1.Using userApi.getCurrentUser() fetch user and assign it to the field user.*/
   private getUser() {
     this.userApi
       .getCurrentUser()
       .pipe(takeUntil(this.onDestroy$))
       .subscribe((value) => (this.user = value));
   }
-  /*2. using userApi.getCurrentUser() and permissionsApi.getPermissions()
-      create new observable "hasPermission".
+  /*2.Using userApi.getCurrentUser() AND permissionsApi.getPermissions() create new observable "hasPermission".
+      To check whether or not user has permission to display content you need both values from userApi and permissionsApi.
+      Next you need to call userPermission.hasPermission(userId, Permission.DISPLAY_CONTENT).
   */
   private getUserPermission() {
-    combineLatest([this.userApi.getCurrentUser(), this.permissionsApi.getPermissions()])
+    this.hasPermission$ = combineLatest([
+      this.userApi.getCurrentUser(),
+      this.permissionsApi.getPermissions(),
+    ]).pipe(
+      map(([user, permissions]) =>
+        permissions.hasPermission(user.id, Permission.DISPLAY_CONTENT)
+      )
+    );
+  }
+  /*3.
+    -Fetch Content[] from contentApi.
+    -Decode "location" and "department" using decodeService.instant(code: number): Observable<string>
+    -Map Content[] to TableContentItem[]:
+      TableContentItem class contains two fields: id, description.
+      To create TableContentItem.description use pattern "Entry: content.description, Department: content.department, Location: content.location"
+    -Assign the result to fields tableContentItems */
+  private getTableContent() {
+    this.contentApi
+      .getContent()
+      .pipe(takeUntil(this.onDestroy$))
+      .subscribe((contentList: Content[]) => {
+        Promise.all(
+          contentList.map(async (content) => {
+            const department = await this.getDecodedValue(content.department);
+            const location = await this.getDecodedValue(content.location);
+            return this.buildContentTableItem(content, department, location);
+          })
+        ).then((result) => (this.contentTableItems = result));
+      });
+  }
+
+  private buildContentTableItem({ id, description }: Content, department, location) {
+    return {
+      id: id,
+      description: `Entry: ${description}, Department: ${department}, Location: ${location}`,
+    };
+  }
+  
+  private async getDecodedValue(code: number): Promise<string> {
+    return await firstValueFrom(this.decodeService.instant(code));
   }
 }
