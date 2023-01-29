@@ -61,8 +61,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.hasPermission$ = combineLatest([
       this.userApi.getCurrentUser(),
       this.permissionsApi.getPermissions(),
-    ]).pipe(
-      map(([user, permissions]) =>
+    ]).pipe(map(([user, permissions]) =>
         permissions.hasPermission(user.id, Permission.DISPLAY_CONTENT)
       )
     );
@@ -79,13 +78,11 @@ export class AppComponent implements OnInit, OnDestroy {
       .getContent()
       .pipe(takeUntil(this.onDestroy$))
       .subscribe((contentList: Content[]) => {
-        Promise.all(
-          contentList.map(async (content) => {
+        Promise.all(contentList.map(async (content) => {
             const department = await this.getDecodedValue(content.department);
             const location = await this.getDecodedValue(content.location);
             return this.buildContentTableItem(content, department, location);
-          })
-        ).then((result) => (this.contentTableItems = result));
+          })).then((result) => (this.contentTableItems = result));
       });
   }
 
@@ -95,7 +92,7 @@ export class AppComponent implements OnInit, OnDestroy {
       description: `Entry: ${description}, Department: ${department}, Location: ${location}`,
     };
   }
-  
+
   private async getDecodedValue(code: number): Promise<string> {
     return await firstValueFrom(this.decodeService.instant(code));
   }
