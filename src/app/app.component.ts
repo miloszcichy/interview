@@ -6,11 +6,10 @@ import {
   Subject,
   takeUntil,
 } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Content } from '../model/content.model';
 import { Permission } from '../model/permission.enum';
 import { TableContentItem } from '../model/table-content-item.model';
-import { UserPermissions } from '../model/user-permissions.model';
 import { User } from '../model/user.model';
 import { ContentApi } from '../service/content/content.api';
 import { DecodeService } from '../service/decode/decode.service';
@@ -54,8 +53,8 @@ export class AppComponent implements OnInit, OnDestroy {
       .subscribe((value) => (this.user = value));
   }
   /*2.Using userApi.getCurrentUser() AND permissionsApi.getPermissions() create new observable "hasPermission".
-      To check whether or not user has permission to display content you need both values from userApi and permissionsApi.
-      Next you need to call userPermission.hasPermission(userId, Permission.DISPLAY_CONTENT).
+      To check whether a user has permission to display content you need both values from userApi and permissionsApi.
+      Next you need to call userPermission.hasPermission(userId, Permission.DISPLAY_CONTENT): boolean.
   */
   private getUserPermission() {
     this.hasPermission$ = combineLatest([
