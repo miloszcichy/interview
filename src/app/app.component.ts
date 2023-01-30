@@ -45,7 +45,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private getUserPermission() {}
   /*3.
     -Fetch Content[] from contentApi.
-    -Decode "location" and "department" using DecodeService#instant(code: number): Observable<string>
+    -Decode "Content#location" and "Content#department" using DecodeService#instant(code: number): Observable<string>
     -Map Content[] to TableContentItem[]:
       TableContentItem class contains two fields: id, description.
       To create TableContentItem#description use pattern "Entry: Content#description, Department: decoded_Department, Location: decoded_Location"
